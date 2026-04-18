@@ -262,13 +262,20 @@
             color: #aaa;
             white-space: nowrap;
             transition: opacity 0.5s ease;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 0;
         }
+        .hint:hover { color: #888; }
 
         /* ── Impressum ── */
         .imp-btn {
             position: fixed;
             bottom: clamp(0.8rem, 2vw, 1.2rem);
-            right: clamp(0.9rem, 2.5vw, 1.5rem);
+            left: 50%;
+            transform: translateX(-50%);
             font-size: 0.56rem;
             letter-spacing: 0.15em;
             text-transform: uppercase;
@@ -380,7 +387,7 @@
         </div>
     </div>
 
-    <p class="hint" id="hint">Öffnen</p>
+    <button class="hint" id="hint">Öffnen</button>
 
     <button class="imp-btn" id="impBtn">Impressum</button>
 
@@ -426,6 +433,11 @@
         cover.addEventListener('click', toggle);
         cover.addEventListener('keydown', e => {
             if (e.key === 'Enter' || e.key === ' ') toggle();
+        });
+
+        document.getElementById('hint').addEventListener('click', toggle);
+        document.querySelector('.nb-interior').addEventListener('click', () => {
+            if (isOpen) toggle();
         });
 
         impBtn.addEventListener('click',   () => impModal.classList.add('show'));
