@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nina Saalfrank</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            background: #eeebe6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ── Name ── */
+        .name {
+            position: fixed;
+            top: clamp(1.2rem, 4vw, 2rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.52rem, 1.4vw, 0.68rem);
+            letter-spacing: 0.42em;
+            text-transform: uppercase;
+            color: #2a2a2a;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+
+        /* ── 3D scene ── */
+        .scene {
+            perspective: 1000px;
+        }
+
+        /* ── Notebook shell ── */
+        .notebook {
+            position: relative;
+            width: clamp(195px, 46vw, 255px);
+            height: clamp(275px, 65vw, 360px);
+            filter:
+                drop-shadow(0 28px 55px rgba(0,0,0,0.22))
+                drop-shadow(0 6px 14px rgba(0,0,0,0.13));
+        }
+
+        /* Back cover (always visible as base) */
+        .nb-back {
+            position: absolute;
+            inset: 0;
+            background: #1c1c1a;
+            border-radius: 2px 5px 5px 2px;
+        }
+
+        /* Spine */
+        .nb-spine {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 14px;
+            background: linear-gradient(90deg, #111 0%, #1a1a18 60%, #222 100%);
+            border-radius: 2px 0 0 2px;
+        }
+
+        /* Page stack edge (right side) */
+        .nb-pages-edge {
+            position: absolute;
+            top: 5px;
+            right: 0;
+            bottom: 5px;
+            width: 5px;
+            background: repeating-linear-gradient(
+                180deg,
+                #e8e4de 0px,
+                #e8e4de 2px,
+                #f0ece6 2px,
+                #f0ece6 3px
+            );
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* ── Interior page ── */
+        .nb-interior {
+            position: absolute;
+            top: 5px;
+            left: 14px;
+            right: 5px;
+            bottom: 5px;
+            border-radius: 0 3px 3px 0;
+            overflow: hidden;
+            /* Cream base */
+            background-color: #faf7f2;
+            /* Subtle grid */
+            background-image:
+                linear-gradient(rgba(110, 130, 185, 0.11) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(110, 130, 185, 0.11) 1px, transparent 1px);
+            background-size: 18px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Subtle page-turn shadow on the left (spine side) */
+        .nb-interior::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 18px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.06), transparent);
+        }
+
+        /* ── Post-it ── */
+        .post-it {
+            background: #fef08a;
+            width: clamp(112px, 28vw, 148px);
+            padding: clamp(14px, 3.5vw, 20px) clamp(12px, 3vw, 16px);
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: clamp(0.67rem, 1.9vw, 0.78rem);
+            line-height: 1.75;
+            color: #222;
+            box-shadow: 2px 3px 12px rgba(0,0,0,0.11);
+            transform: rotate(-2.2deg) translateY(-5px);
+            position: relative;
+        }
+
+        /* tape strip */
+        .post-it::before {
+            content: '';
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 12px;
+            background: rgba(255,255,255,0.48);
+            border-radius: 2px;
+        }
+
+        /* ── Front cover (rotates open/closed) ── */
+        .nb-cover {
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            transition: transform 1.35s cubic-bezier(0.22, 0, 0.08, 1);
+            cursor: pointer;
+        }
+
+        .nb-cover.open {
+            transform: rotateY(-148deg);
+        }
+
+        /* Hover brightness only when closed */
+        .nb-cover:not(.open):hover .cover-front {
+            filter: brightness(1.06);
+        }
+
+        /* Front face of cover */
+        .cover-front {
+            position: absolute;
+            inset: 0;
+            border-radius: 2px 5px 5px 2px;
+            backface-visibility: hidden;
+            overflow: hidden;
+            background-color: #1e1e1c;
+            /* Linen-like crosshatch texture */
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 3px,
+                    rgba(255,255,255,0.016) 3px,
+                    rgba(255,255,255,0.016) 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 3px,
+                    rgba(255,255,255,0.01) 3px,
+                    rgba(255,255,255,0.01) 4px
+                );
+            transition: filter 0.25s;
+        }
+
+        /* Spine shadow on cover front */
+        .cover-front::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 16px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.3), transparent);
+        }
+
+        /* Right edge highlight */
+        .cover-front::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(255,255,255,0.07);
+        }
+
+        /* Elastic band */
+        .elastic {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(210,195,175,0.4);
+            transform: translateY(-50%);
+        }
+
+        /* Ribbon bookmark */
+        .ribbon {
+            position: absolute;
+            bottom: -10px;
+            right: clamp(22px, 6vw, 30px);
+            width: 5px;
+            height: 22px;
+            background: linear-gradient(180deg, #8b2a2a 0%, #7a2323 100%);
+            border-radius: 0 0 2px 2px;
+        }
+
+        /* Inside of cover (back face, visible mid-animation) */
+        .cover-back {
+            position: absolute;
+            inset: 0;
+            border-radius: 2px 5px 5px 2px;
+            backface-visibility: hidden;
+            transform: rotateY(180deg);
+            background: #1a1a18;
+        }
+
+        /* ── Hint text ── */
+        .hint {
+            position: fixed;
+            bottom: clamp(3.5rem, 9vw, 5.5rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.52rem, 1.3vw, 0.62rem);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #aaa;
+            white-space: nowrap;
+            transition: opacity 0.5s ease;
+        }
+
+        /* ── Impressum ── */
+        .imp-btn {
+            position: fixed;
+            bottom: clamp(0.8rem, 2vw, 1.2rem);
+            right: clamp(0.9rem, 2.5vw, 1.5rem);
+            font-size: 0.56rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #ccc;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0;
+            transition: color 0.3s;
+        }
+        .imp-btn:hover { color: #999; }
+
+        .imp-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(238, 235, 230, 0.96);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            z-index: 50;
+        }
+        .imp-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .imp-box {
+            max-width: 360px;
+            width: 88%;
+            padding: 2.5rem 2.5rem 2rem;
+            position: relative;
+        }
+
+        .imp-box h2 {
+            font-size: 0.62rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            font-weight: 400;
+            color: #2a2a2a;
+            margin-bottom: 1.8rem;
+        }
+
+        .imp-box address,
+        .imp-box p {
+            font-size: 0.72rem;
+            line-height: 1.9;
+            color: #555;
+            font-style: normal;
+            margin-bottom: 0.5rem;
+        }
+
+        .imp-section {
+            font-size: 0.58rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #aaa;
+            display: block;
+            margin: 1.4rem 0 0.5rem;
+        }
+
+        .imp-close {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.6rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            line-height: 1;
+            font-weight: 300;
+            cursor: pointer;
+            color: #ccc;
+            transition: color 0.25s;
+        }
+        .imp-close:hover { color: #666; }
+    </style>
+</head>
+<body>
+
+    <p class="name">Nina Saalfrank</p>
+
+    <div class="scene">
+        <div class="notebook">
+
+            <!-- Base: back cover + spine -->
+            <div class="nb-back"></div>
+            <div class="nb-spine"></div>
+            <div class="nb-pages-edge"></div>
+
+            <!-- Interior page (grid + post-it) -->
+            <div class="nb-interior">
+                <div class="post-it">
+                    Schau bald<br>nochmal vorbei —<br><br>ich bereite noch<br>etwas vor.
+                </div>
+            </div>
+
+            <!-- Front cover — click to toggle open/closed -->
+            <div class="nb-cover" id="cover" role="button" aria-label="Notizbuch öffnen" tabindex="0">
+                <div class="cover-front">
+                    <div class="elastic"></div>
+                    <div class="ribbon"></div>
+                </div>
+                <div class="cover-back"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <p class="hint" id="hint">Öffnen</p>
+
+    <button class="imp-btn" id="impBtn">Impressum</button>
+
+    <div class="imp-modal" id="impModal" role="dialog" aria-modal="true">
+        <div class="imp-box">
+            <button class="imp-close" id="impClose" aria-label="Schließen">×</button>
+            <h2>Impressum</h2>
+
+            <span class="imp-section">Angaben gemäß § 5 TMG</span>
+            <address>
+                Nina Saalfrank<br>
+                Otzenstraße 16<br>
+                22767 Hamburg
+            </address>
+
+            <span class="imp-section">Haftung für Inhalte</span>
+            <p>Die Inhalte dieser Seite wurden mit größtmöglicher Sorgfalt erstellt. Für Richtigkeit, Vollständigkeit und Aktualität wird keine Gewähr übernommen (§ 7 Abs. 1 TMG).</p>
+
+            <span class="imp-section">Haftung für Links</span>
+            <p>Diese Website enthält derzeit keine externen Links.</p>
+
+            <span class="imp-section">Urheberrecht</span>
+            <p>Die Inhalte dieser Website unterliegen dem deutschen Urheberrecht. Vervielfältigung oder Verbreitung bedürfen der schriftlichen Zustimmung der Urheberin.</p>
+        </div>
+    </div>
+
+    <script>
+        const cover    = document.getElementById('cover');
+        const hint     = document.getElementById('hint');
+        const impBtn   = document.getElementById('impBtn');
+        const impModal = document.getElementById('impModal');
+        const impClose = document.getElementById('impClose');
+
+        let isOpen = false;
+
+        function toggle() {
+            isOpen = !isOpen;
+            cover.classList.toggle('open', isOpen);
+            cover.setAttribute('aria-label', isOpen ? 'Notizbuch schließen' : 'Notizbuch öffnen');
+            hint.textContent = isOpen ? 'Schließen' : 'Öffnen';
+        }
+
+        cover.addEventListener('click', toggle);
+        cover.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') toggle();
+        });
+
+        impBtn.addEventListener('click',   () => impModal.classList.add('show'));
+        impClose.addEventListener('click', () => impModal.classList.remove('show'));
+        impModal.addEventListener('click', e => {
+            if (e.target === impModal) impModal.classList.remove('show');
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') impModal.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
